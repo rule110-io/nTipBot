@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+  
+  
+  <PropertyGroup>
+    <RuntimeIdentifiers>win10-x64;linux-x64</RuntimeIdentifiers>
+</PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="RestSharp" Version="106.11.4" />
+    <PackageReference Include="Telegram.Bot" Version="15.7.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Documents\Repositories\nkn-sdk-net\NknSdk\NknSdk.csproj" />
+  </ItemGroup>
+
+</Project>
