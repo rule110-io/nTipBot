@@ -38,6 +38,23 @@ The faucet address is `{faucetAddress}`, when claiming the faucet you will be gi
 
 ⚠ Even though this bot stores no information whatsoever about your interactions, nor does it store any seed or wallet information, the wallets are subject to potential telegram exploits and deterministical wallet generation could be compromised\. We can not guarantee safety of your funds\! ⚠";
 
+		private static string BotInfoMessage => $@"👷‍♂ How does it work?
+The wallet seed is derived from your telegram user, this way everyone that has a telegram user automatically has a wallet associated with their account and can send and receive tips\.
+When you send or receive a tip for both the sender and the recipients the wallets are derived and the transaction is signed on the server\.
+
+⚠ Is it safe?
+Because the seed is derived from your telegram user it is in theory possible to hijack the telegram api and pose as another user to gain access to your funds through the bot, alternatively it is possible the technique for the derivation is brute forced\.
+That is why we urge users to only use small quantities of NKN as we can not guarantee the safety of your funds\.
+
+🚰 How does the faucet work?
+Every telegram user can periodically claim from the faucet, the amount of NKN you receive is 1/1000th of the total balance of the faucet at time of transfer\.
+
+👩‍💻 Github
+All code is opensource and can be found here [Github](https://github.com/rule110-io/nTipBot/)
+
+❔ Reach out
+If you have any further questions you can each me here @MutsiMutsi";
+
 		private static void Main(string[] args)
 		{
 			client = new TelegramBotClient(apiToken);
@@ -215,6 +232,9 @@ The faucet address is `{faucetAddress}`, when claiming the faucet you will be gi
 						await client.SendTextMessageAsync(e.Message.Chat.Id, Util.SafeEscape(donateReply), ParseMode.MarkdownV2, true, false, 0, rkm);
 						break;
 					}
+				case "❓ Info":
+					await client.SendTextMessageAsync(e.Message.Chat.Id, BotInfoMessage, ParseMode.MarkdownV2, false, false, 0, rkm);
+					break;
 				case "/start":
 					await client.SendTextMessageAsync(e.Message.Chat.Id, BotWelcomeMessage, ParseMode.MarkdownV2, false, false, 0, rkm);
 					break;
@@ -234,9 +254,6 @@ The faucet address is `{faucetAddress}`, when claiming the faucet you will be gi
 						new KeyboardButton[]
 						{
 							new KeyboardButton("💳 My Address"),
-						},
-						new KeyboardButton[]
-						{
 							new KeyboardButton("💰 Balance"),
 						},
 						new KeyboardButton[]
@@ -247,6 +264,11 @@ The faucet address is `{faucetAddress}`, when claiming the faucet you will be gi
 						new KeyboardButton[]
 						{
 							new KeyboardButton("🌱 Export Seed"),
+						}
+						,
+						new KeyboardButton[]
+						{
+							new KeyboardButton("❓ Info"),
 						}
 					}
 			};
