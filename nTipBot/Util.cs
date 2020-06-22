@@ -10,9 +10,27 @@ namespace nTipBot
 		/// </summary>
 		/// <param name="msg"></param>
 		/// <returns></returns>
-		public static string SafeEscape(string msg)
+		public static string MarkdownV2Escape(string msg)
 		{
-			return msg.Replace("_", "\\_");
+			return msg
+			.Replace("_", "\\_")
+			.Replace("*", "\\*")
+			.Replace("[", "\\[")
+			.Replace("]", "\\]")
+			.Replace("(", "\\(")
+			.Replace(")", "\\)")
+			.Replace("~", "\\~")
+			.Replace("`", "\\`")
+			.Replace(">", "\\>")
+			.Replace("#", "\\#")
+			.Replace("+", "\\+")
+			.Replace("-", "\\-")
+			.Replace("=", "\\=")
+			.Replace("|", "\\|")
+			.Replace("{", "\\{")
+			.Replace("}", "\\}")
+			.Replace(".", "\\.")
+			.Replace("!", "\\!");
 		}
 
 		/// <summary>

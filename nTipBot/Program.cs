@@ -83,7 +83,7 @@ If you have any further questions you can each me here @MutsiMutsi";
 			catch (Exception ex)
 			{
 				Console.WriteLine(ex.ToString());
-				await client.SendTextMessageAsync(e.Message.Chat.Id, Util.SafeEscape($"Error occurred: {ex.Message}, try again or contact @MutsiMutsi"), ParseMode.Default);
+				await client.SendTextMessageAsync(e.Message.Chat.Id, Util.MarkdownV2Escape($"Error occurred: {ex.Message}, try again or contact @MutsiMutsi"), ParseMode.Default);
 			}
 		}
 
@@ -95,7 +95,15 @@ If you have any further questions you can each me here @MutsiMutsi";
 			{
 				if (e.Message.Text.StartsWith("/tip"))
 				{
-					await TipCommand(e);
+					//Block tipping the channel
+					if (e.Message.Chat.Id != e.Message.ReplyToMessage.From.Id)
+					{
+						await TipCommand(e);
+					}
+					else
+					{
+						await client.SendTextMessageAsync(e.Message.Chat.Id, "You can't a channel", ParseMode.MarkdownV2);
+					}
 				}
 				return;
 			}
@@ -165,17 +173,17 @@ If you have any further questions you can each me here @MutsiMutsi";
 					string txnHash = await userWallet.TransferToAsync(replyToWallet.Address, amount, options);
 
 					string nscanUrl = $"🔗 [nScan\\.io](https://nscan.io/transactions/{txnHash})";
-					string msg = $"{e.Message.From.Username} tipped {e.Message.ReplyToMessage.From.Username} `{amount}` NKN\r\n{nscanUrl}";
-					await client.SendTextMessageAsync(e.Message.Chat.Id, Util.SafeEscape(msg), ParseMode.MarkdownV2, true);
+					string msg = $"{Util.MarkdownV2Escape(e.Message.From.FirstName)} tipped {Util.MarkdownV2Escape(e.Message.ReplyToMessage.From.FirstName)} `{amount}` NKN\r\n{nscanUrl}";
+					await client.SendTextMessageAsync(e.Message.Chat.Id, msg, ParseMode.MarkdownV2, true);
 				}
 				else
 				{
-					await client.SendTextMessageAsync(e.Message.Chat.Id, Util.SafeEscape($"{e.Message.From.Username} not enough balance to tip `{amount}`"), ParseMode.MarkdownV2);
+					await client.SendTextMessageAsync(e.Message.Chat.Id, $"{Util.MarkdownV2Escape(e.Message.From.Username)} not enough balance to tip `{amount}`", ParseMode.MarkdownV2);
 				}
 			}
 			else
 			{
-				await client.SendTextMessageAsync(e.Message.Chat.Id, Util.SafeEscape($"{e.Message.From.Username} invalid amount try the following syntax: `/tip 0.001`"), ParseMode.MarkdownV2);
+				await client.SendTextMessageAsync(e.Message.Chat.Id, $"{Util.MarkdownV2Escape(e.Message.From.Username)} invalid amount try the following syntax: `/tip 0.001`", ParseMode.MarkdownV2);
 			}
 		}
 
@@ -189,23 +197,23 @@ If you have any further questions you can each me here @MutsiMutsi";
 						string nscanUrl = $"🔗 [nScan\\.io](https://nscan.io/addresses/{userWallet.Address})";
 
 						string msg = $"`{userWallet.Address}`" + $"\r\n{nscanUrl}";
-						await client.SendTextMessageAsync(e.Message.Chat.Id, Util.SafeEscape($"Wallet address\r\n{msg}"), ParseMode.MarkdownV2, true, false, 0, rkm);
+						await client.SendTextMessageAsync(e.Message.Chat.Id, $"Wallet address\r\n{msg}", ParseMode.MarkdownV2, true, false, 0, rkm);
 						break;
 					}
 				case "💰 Balance":
 					GetBalanceResult balanceResult = await GetUserWallet(e.Message.From).GetBalanceAsync();
-					await client.SendTextMessageAsync(e.Message.Chat.Id, Util.SafeEscape($"Your balance\r\n`{balanceResult.Amount.ToString()} NKN`"), ParseMode.MarkdownV2, false, false, 0, rkm);
+					await client.SendTextMessageAsync(e.Message.Chat.Id, $"Your balance\r\n`{balanceResult.Amount.ToString()} NKN`", ParseMode.MarkdownV2, false, false, 0, rkm);
 					break;
 				case "🌱 Export Seed":
 					{
 						string msg = GetUserWallet(e.Message.From).Seed;
-						await client.SendTextMessageAsync(e.Message.Chat.Id, Util.SafeEscape($"Wallet seed\r\n`{msg}`"), ParseMode.MarkdownV2, true, false, 0, rkm);
+						await client.SendTextMessageAsync(e.Message.Chat.Id, $"Wallet seed\r\n`{msg}`", ParseMode.MarkdownV2, true, false, 0, rkm);
 						break;
 					}
 				case "🚰 Claim Faucet":
 					{
 						string faucetMsg = await UseFaucet(e.Message.From);
-						await client.SendTextMessageAsync(e.Message.Chat.Id, Util.SafeEscape(faucetMsg), ParseMode.MarkdownV2, true, false, 0, rkm);
+						await client.SendTextMessageAsync(e.Message.Chat.Id, faucetMsg, ParseMode.MarkdownV2, true, false, 0, rkm);
 						break;
 					}
 				case "💸 Donate 1 NKN to Faucet":
@@ -229,7 +237,7 @@ If you have any further questions you can each me here @MutsiMutsi";
 						{
 							donateReply = "You do not have 1 NKN to donate\\.";
 						}
-						await client.SendTextMessageAsync(e.Message.Chat.Id, Util.SafeEscape(donateReply), ParseMode.MarkdownV2, true, false, 0, rkm);
+						await client.SendTextMessageAsync(e.Message.Chat.Id, donateReply, ParseMode.MarkdownV2, true, false, 0, rkm);
 						break;
 					}
 				case "❓ Info":
