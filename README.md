@@ -1,4 +1,5 @@
 # nTipBot
+![.NET Core](https://github.com/rule110-io/nTipBot/workflows/.NET%20Core/badge.svg)
 ![GitHub contributors](https://img.shields.io/github/contributors/rule110-io/ntipBot)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/rule110-io/nTipBot)
 
