@@ -19,5 +19,12 @@ namespace nTipBot.Api
 			string content = await httpClient.GetStringAsync("https://api.exchangeratesapi.io/latest?base=USD&symbols=GBP");
 			return await Task.Run(() => JObject.Parse(content)["rates"]["GBP"].Value<decimal>());
 		}
+
+		public static async Task<decimal> GetUSDToINR()
+		{
+			HttpClient httpClient = new HttpClient();
+			string content = await httpClient.GetStringAsync("https://api.exchangeratesapi.io/latest?base=USD&symbols=INR");
+			return await Task.Run(() => JObject.Parse(content)["rates"]["INR"].Value<decimal>());
+		}
 	}
 }

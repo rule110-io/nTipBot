@@ -130,6 +130,7 @@ If you have any further questions you can each me here @MutsiMutsi";
 			bool inUsd = amountStr[0] == '$';
 			bool inEur = amountStr[0] == '€';
 			bool inGbp = amountStr.StartsWith("£");
+			bool isInr = amountStr.StartsWith("₹");
 			if (inUsd)
 			{
 				amountStr = amountStr.Replace("$", "");
@@ -141,6 +142,10 @@ If you have any further questions you can each me here @MutsiMutsi";
 			if (inGbp)
 			{
 				amountStr = amountStr.Replace("£", "");
+			}
+			if (isInr)
+			{
+				amountStr = amountStr.Replace("₹", "");
 			}
 
 			if (decimal.TryParse(amountStr, out decimal amount))
@@ -159,6 +164,11 @@ If you have any further questions you can each me here @MutsiMutsi";
 				{
 					amount /= await OpenApiNkn.GetNKNRate();
 					amount /= await ExchangeRatesApi.GetUSDToGBP();
+				}
+				if (isInr)
+				{
+					amount /= await OpenApiNkn.GetNKNRate();
+					amount /= await ExchangeRatesApi.GetUSDToINR();
 				}
 				amount = decimal.Round(amount, 8);
 
