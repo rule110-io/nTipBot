@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30204.135
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nTipBot", "nTipBot\nTipBot.csproj", "{2390C927-18CB-4E5F-BF8C-326E98C7249B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "nTipBot", "nTipBot\nTipBot.csproj", "{2390C927-18CB-4E5F-BF8C-326E98C7249B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NknSdk", "..\..\..\Documents\Repositories\nkn-sdk-net\NknSdk\NknSdk.csproj", "{9D8087D1-39AE-479A-A203-9EF2883A3BA0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NknSdk", "nkn-sdk-net\NknSdk\NknSdk.csproj", "{AA210157-191B-419D-8686-09F7EFC75E98}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ncp", "..\..\..\Documents\Repositories\nkn-sdk-net\Ncp\Ncp.csproj", "{83E3764D-AD79-4858-8B06-0E40CCF51628}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ncp", "nkn-sdk-net\Ncp\Ncp.csproj", "{7A995307-91A1-4C62-80BB-76729A285D56}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,14 +19,14 @@ Global
 		{2390C927-18CB-4E5F-BF8C-326E98C7249B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2390C927-18CB-4E5F-BF8C-326E98C7249B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2390C927-18CB-4E5F-BF8C-326E98C7249B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9D8087D1-39AE-479A-A203-9EF2883A3BA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9D8087D1-39AE-479A-A203-9EF2883A3BA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9D8087D1-39AE-479A-A203-9EF2883A3BA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9D8087D1-39AE-479A-A203-9EF2883A3BA0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{83E3764D-AD79-4858-8B06-0E40CCF51628}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{83E3764D-AD79-4858-8B06-0E40CCF51628}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{83E3764D-AD79-4858-8B06-0E40CCF51628}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{83E3764D-AD79-4858-8B06-0E40CCF51628}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA210157-191B-419D-8686-09F7EFC75E98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA210157-191B-419D-8686-09F7EFC75E98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA210157-191B-419D-8686-09F7EFC75E98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA210157-191B-419D-8686-09F7EFC75E98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A995307-91A1-4C62-80BB-76729A285D56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A995307-91A1-4C62-80BB-76729A285D56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A995307-91A1-4C62-80BB-76729A285D56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A995307-91A1-4C62-80BB-76729A285D56}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

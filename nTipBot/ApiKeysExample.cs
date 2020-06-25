@@ -1,6 +1,6 @@
 ﻿namespace nTipBot
 {
-	public class ApiKeysExample
+	public class ApiKeys
 	{
 		public const string TelegramBotApiToken = "";
 		public const string FaucetSeed = "";

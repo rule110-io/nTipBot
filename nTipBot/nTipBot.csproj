@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Documents\Repositories\nkn-sdk-net\NknSdk\NknSdk.csproj" />
+    <ProjectReference Include="..\nkn-sdk-net\NknSdk\NknSdk.csproj" />
   </ItemGroup>
 
 </Project>
