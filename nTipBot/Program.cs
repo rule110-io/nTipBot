@@ -178,12 +178,12 @@ If you have any further questions you can each me here @MutsiMutsi";
 				}
 				else
 				{
-					await client.SendTextMessageAsync(e.Message.Chat.Id, $"{Util.MarkdownV2Escape(e.Message.From.Username)} not enough balance to tip `{amount}`", ParseMode.MarkdownV2);
+					await client.SendTextMessageAsync(e.Message.Chat.Id, $"{Util.MarkdownV2Escape(e.Message.From.FirstName)} not enough balance to tip `{amount}`", ParseMode.MarkdownV2);
 				}
 			}
 			else
 			{
-				await client.SendTextMessageAsync(e.Message.Chat.Id, $"{Util.MarkdownV2Escape(e.Message.From.Username)} invalid amount try the following syntax: `/tip 0.001`", ParseMode.MarkdownV2);
+				await client.SendTextMessageAsync(e.Message.Chat.Id, $"{Util.MarkdownV2Escape(e.Message.From.FirstName)} invalid amount try the following syntax: `/tip 0.001`", ParseMode.MarkdownV2);
 			}
 		}
 
