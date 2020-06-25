@@ -1,0 +1,3 @@
+[submodule "nkn-sdk-net"]
+	path = nkn-sdk-net
+	url = https://github.com/hiksa/nkn-sdk-net.git
