@@ -3,7 +3,7 @@
 ![GitHub contributors](https://img.shields.io/github/contributors/rule110-io/ntipBot)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/rule110-io/nTipBot)
 
-[![NKN](https://github.com/nknorg/nkn/wiki/img/nkn_logo.png)](https://nkn.org)
+![](https://github.com/rule110-io/nTipBot/blob/master/img/nTipBot256.png)
 
 nTipBot is a deterministic wallet generator to provide seamless and fun nkn wallet integration with telegram.
 
@@ -17,6 +17,7 @@ Use the ApiKeysExample.cs to fill in your own keys as needed.
 MIT License.
 
 ### About NKN
+[![NKN](https://github.com/nknorg/nkn/wiki/img/nkn_logo.png)](https://nkn.org)
 > NKN, short for New Kind of Network, is a project aiming to rebuild the
 > Internet that will be truly open, decentralized, dynamic, safe, shared and
 > owned by the community.
