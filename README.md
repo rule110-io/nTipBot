@@ -16,7 +16,7 @@ Use the ApiKeysExample.cs to fill in your own keys as needed.
 ### License
 MIT License.
 
-### About NKN
+## About NKN
 [![NKN](https://github.com/nknorg/nkn/wiki/img/nkn_logo.png)](https://nkn.org)
 > NKN, short for New Kind of Network, is a project aiming to rebuild the
 > Internet that will be truly open, decentralized, dynamic, safe, shared and
