@@ -1,10 +1,11 @@
 ﻿namespace nTipBot
 {
-	public class ApiKeys
+	public partial class ApiKeys
 	{
-		public const string TelegramBotApiToken = "";
-		public const string FaucetSeed = "";
-		public const string FaucetAddress = "";
-		public const string SecretSalt = "";
+		public static readonly string TelegramBotApiToken = "";
+		public static readonly string FaucetSeed = "";
+		public static readonly string FaucetAddress = "";
+		public static readonly string Secret1 = "";
+		public static readonly string Secret2 = "";
 	}
 }
