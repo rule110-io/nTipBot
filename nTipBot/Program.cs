@@ -1,6 +1,8 @@
 ﻿using NknSdk.Common.Options;
 using NknSdk.Common.Rpc.Results;
 using NknSdk.Wallet;
+using NknSdk.Wallet.Models;
+using Norgerman.Cryptography.Scrypt;
 using nTipBot.Api;
 using nTipBot.Enums;
 using nTipBot.Models;
@@ -17,6 +19,7 @@ using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using static NknSdk.Common.Extensions.InfrastructureExtensions;
 
 namespace nTipBot
 {
@@ -25,7 +28,6 @@ namespace nTipBot
 		private const decimal MIN_TRANSFER = 0.00000001m;
 
 		private static readonly string apiToken = ApiKeys.TelegramBotApiToken;
-		private static Guid secretSalt = Guid.Parse(ApiKeys.SecretSalt);
 		private static readonly string faucetSeed = ApiKeys.FaucetSeed;
 		private static readonly string faucetAddress = ApiKeys.FaucetAddress;
 		private static readonly SemaphoreSlim semaphoreFaucet = new SemaphoreSlim(1, 1);
@@ -93,6 +95,32 @@ If you have any further questions you can reach me here @MutsiMutsi";
 			}
 		}
 
+		private static async Task<bool> MigrateToV2(MessageEventArgs e)
+		{
+			//Transfer funds to new wallet
+			try
+			{
+				Wallet walletOld = GetUserWalletOld(e.Message.From);
+				GetBalanceResult balanceRes = await walletOld.GetBalanceAsync();
+
+				if (balanceRes.Amount > 0)
+				{
+					Wallet walletNew = await GetUserWallet(e.Message.From.Id);
+					TransactionOptions options = new TransactionOptions() { Fee = 0, Attributes = "" };
+					string txnHash = await walletOld.TransferToAsync(walletNew.Address, balanceRes.Amount, options);
+
+					await client.SendTextMessageAsync(e.Message.Chat.Id, $"Transferring balance to wallet v2 (security update), please try again in a minute.", ParseMode.Default);
+					return true;
+				}
+			}
+			catch (Exception ex)
+			{
+				await client.SendTextMessageAsync(e.Message.Chat.Id, $"Transferring balance to wallet v2 (security update), please try again in a minute.", ParseMode.Default);
+				return true;
+			}
+			return false;
+		}
+
 		private static async Task ProcessMessage(MessageEventArgs e)
 		{
 			ReplyKeyboardMarkup rkm = GenerateHomeKeyboard();
@@ -101,6 +129,9 @@ If you have any further questions you can reach me here @MutsiMutsi";
 			{
 				if (e.Message.Text.StartsWith("/tip"))
 				{
+					if (await MigrateToV2(e))
+						return;
+
 					//Block tipping the channel
 					if (e.Message.Chat.Id != e.Message.ReplyToMessage.From.Id)
 					{
@@ -115,6 +146,9 @@ If you have any further questions you can reach me here @MutsiMutsi";
 			}
 			else if (e.Message.Chat.Id == e.Message.From.Id)
 			{
+				if (await MigrateToV2(e))
+					return;
+
 				if (userDialog.ContainsKey(e.Message.From.Id))
 				{
 
@@ -140,7 +174,7 @@ If you have any further questions you can reach me here @MutsiMutsi";
 			{
 				try
 				{
-					Wallet userWallet = GetUserWallet(msg.From);
+					Wallet userWallet = await GetUserWallet(msg.From.Id);
 					TransactionOptions options = new TransactionOptions() { Fee = 0, Attributes = "" };
 					string txnHash = await userWallet.TransferToAsync(v.Address, v.Amount, options);
 
@@ -171,7 +205,7 @@ If you have any further questions you can reach me here @MutsiMutsi";
 						if (transferAmount >= MIN_TRANSFER)
 						{
 							//Check balance
-							Wallet userWallet = GetUserWallet(msg.From);
+							Wallet userWallet = await GetUserWallet(msg.From.Id);
 							GetBalanceResult balanceRes = await userWallet.GetBalanceAsync();
 							if (transferAmount <= balanceRes.Amount)
 							{
@@ -224,8 +258,8 @@ If you have any further questions you can reach me here @MutsiMutsi";
 
 		private static async Task TipCommand(MessageEventArgs e)
 		{
-			Wallet userWallet = GetUserWallet(e.Message.From);
-			Wallet replyToWallet = GetUserWallet(e.Message.ReplyToMessage.From);
+			Wallet userWallet = await GetUserWallet(e.Message.From.Id);
+			Wallet replyToWallet = await GetUserWallet(e.Message.ReplyToMessage.From.Id);
 			Console.WriteLine($"[{DateTime.Now.ToString()}] {e.Message.Text}");
 			if (userWallet.Address == replyToWallet.Address)
 			{
@@ -311,7 +345,7 @@ If you have any further questions you can reach me here @MutsiMutsi";
 			{
 				case "💳 My Address":
 					{
-						Wallet userWallet = GetUserWallet(e.Message.From);
+						Wallet userWallet = await GetUserWallet(e.Message.From.Id);
 						string nscanUrl = $"🔗 [nScan\\.io](https://nscan.io/addresses/{userWallet.Address})";
 
 						string msg = $"`{userWallet.Address}`" + $"\r\n{nscanUrl}";
@@ -319,7 +353,7 @@ If you have any further questions you can reach me here @MutsiMutsi";
 						break;
 					}
 				case "💰 Balance":
-					GetBalanceResult balanceResult = await GetUserWallet(e.Message.From).GetBalanceAsync();
+					GetBalanceResult balanceResult = await (await GetUserWallet(e.Message.From.Id)).GetBalanceAsync();
 					await client.SendTextMessageAsync(e.Message.Chat.Id, $"Your balance\r\n`{balanceResult.Amount.ToString()} NKN`", ParseMode.MarkdownV2, false, false, 0, rkm);
 					break;
 				/*case "🌱 Export Seed":
@@ -337,7 +371,7 @@ If you have any further questions you can reach me here @MutsiMutsi";
 				case "👼 Donate 1 NKN to Faucet":
 					{
 						string donateReply;
-						Wallet userWallet = GetUserWallet(e.Message.From);
+						Wallet userWallet = await GetUserWallet(e.Message.From.Id);
 						if ((await userWallet.GetBalanceAsync()).Amount >= 1)
 						{
 							TransactionOptions options = new TransactionOptions() { Fee = 0, Attributes = "" };
@@ -450,12 +484,42 @@ If you have any further questions you can reach me here @MutsiMutsi";
 			}
 		}
 
-		private static Wallet GetUserWallet(User user)
+		private static Wallet GetUserWalletOld(User user)
 		{
-			string userHash = Util.ComputeSha256Hash($"{user.Id}{secretSalt}");
+			string userHash = Util.ComputeSha256Hash($"{user.Id}{Guid.Parse(ApiKeys.Secret1)}");
 			return new Wallet(new NknSdk.Common.Options.WalletOptions
 			{
 				SeedHex = userHash
+			});
+		}
+
+		private static async Task<Wallet> GetUserWallet(int userid)
+		{
+			return await Task.Run(async () =>
+			{
+				string salt = Util.ComputeSha256Hash($"{userid}{ApiKeys.Secret1}");
+				string password = Util.ComputeSha256Hash($"{userid}{ApiKeys.Secret2}");
+				string seed = await Scrypt(password, salt);
+				return new Wallet(new WalletOptions
+				{
+					SeedHex = seed
+				});
+			});
+		}
+
+		private static async Task<string> Scrypt(string password, string salt)
+		{
+			return await Task.Run(() =>
+			{
+				return ScryptUtil
+					.Scrypt(
+						password,
+						salt.FromHexString(),
+						 1 << 15,
+						8,
+						1,
+						32)
+					.ToHexString();
 			});
 		}
 
@@ -470,7 +534,7 @@ If you have any further questions you can reach me here @MutsiMutsi";
 				}
 			}
 			//Check if faucet already granted this wallet
-			Wallet userWallet = GetUserWallet(user);
+			Wallet userWallet = await GetUserWallet(user.Id);
 			AddressTransactionResponse faucetTx = await OpenApiNkn.GetFaucetTx(faucetAddress);
 			if (faucetTx.Data.Any(o => o.Payload.RecipientWallet.Trim().ToLower() == userWallet.Address.Trim().ToLower()))
 			{
