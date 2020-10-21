@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -125,12 +126,46 @@ If you have any further questions you can reach me here @MutsiMutsi";
 		{
 			ReplyKeyboardMarkup rkm = GenerateHomeKeyboard();
 
+			if (e.Message.Text == "/price")
+			{
+				StringBuilder sb = new StringBuilder();
+				sb.AppendLine("*NKN Price*");
+				sb.AppendLine($"`{await OpenApiNkn.GetBinanceNKNUSDTRate()} $`");
+				sb.AppendLine($"`{await OpenApiNkn.GetBinanceNKNBTCRate()} Ƀ`");
+				decimal rate = await OpenApiNkn.GetNKNRate();
+				await client.SendTextMessageAsync(e.Message.Chat.Id, $"{sb.ToString().Replace(".", "\\.")}", ParseMode.MarkdownV2);
+			}
+			else if (e.Message.Text.StartsWith("/price"))
+			{
+				string[] splitCmd = e.Message.Text.Split(null);
+				if (splitCmd.Length > 1)
+				{
+					if (decimal.TryParse(splitCmd[1], out decimal amount))
+					{
+						decimal usdt = decimal.Parse(await OpenApiNkn.GetBinanceNKNUSDTRate()) * amount;
+						decimal btc = decimal.Parse(await OpenApiNkn.GetBinanceNKNBTCRate()) * amount;
+
+						StringBuilder sb = new StringBuilder();
+						sb.AppendLine($"{amount} NKN");
+						sb.AppendLine($"`{usdt.ToString("G29")} $`");
+						sb.AppendLine($"`{btc.ToString("G29")} Ƀ`");
+						decimal rate = await OpenApiNkn.GetNKNRate();
+						await client.SendTextMessageAsync(e.Message.Chat.Id, $"{sb.ToString().Replace(".", "\\.")}", ParseMode.MarkdownV2);
+					}
+				}
+			}
+			if (e.Message.Text == "/moon")
+			{
+				decimal rate = await OpenApiNkn.GetNKNRate();
+				await client.SendTextMessageAsync(e.Message.Chat.Id, "soon", ParseMode.MarkdownV2);
+			}
+
 			if (e.Message.ReplyToMessage != null)
 			{
 				if (e.Message.Text.StartsWith("/tip"))
 				{
-					if (await MigrateToV2(e))
-						return;
+					//if (await MigrateToV2(e))
+					//	return;
 
 					//Block tipping the channel
 					if (e.Message.Chat.Id != e.Message.ReplyToMessage.From.Id)
@@ -146,8 +181,8 @@ If you have any further questions you can reach me here @MutsiMutsi";
 			}
 			else if (e.Message.Chat.Id == e.Message.From.Id)
 			{
-				if (await MigrateToV2(e))
-					return;
+				//if (await MigrateToV2(e))
+				//	return;
 
 				if (userDialog.ContainsKey(e.Message.From.Id))
 				{
@@ -536,7 +571,7 @@ If you have any further questions you can reach me here @MutsiMutsi";
 			//Check if faucet already granted this wallet
 			Wallet userWallet = await GetUserWallet(user.Id);
 			AddressTransactionResponse faucetTx = await OpenApiNkn.GetFaucetTx(faucetAddress);
-			if (faucetTx.Data.Any(o => o.Payload.RecipientWallet.Trim().ToLower() == userWallet.Address.Trim().ToLower()))
+			if (faucetTx.Data.Any(o => o.Payload.RecipientWallet.Trim().ToLower() == userWallet.Address.Trim().ToLower() && DateTime.Parse(o.Payload.CreatedAt) > DateTime.Now.AddDays(-7)))
 			{
 				return $"You've already used the faucet recently\\.";
 			}
