@@ -33,6 +33,7 @@ namespace nTipBot
 		private static readonly string faucetAddress = ApiKeys.FaucetAddress;
 		private static readonly SemaphoreSlim semaphoreFaucet = new SemaphoreSlim(1, 1);
 		private static Dictionary<int, UserDialogModel> userDialog = new Dictionary<int, UserDialogModel>();
+		private static Dictionary<long, QueryAndResponseMessageCache> channelQueryAndResponseDict = new Dictionary<long, QueryAndResponseMessageCache>();
 
 		private static TelegramBotClient client;
 
@@ -122,18 +123,44 @@ If you have any further questions you can reach me here @MutsiMutsi";
 			return false;
 		}
 
+		private static async Task pushQueryAndResponseCache(long chatId, int queryMesssageId, int responseMessageId)
+		{
+
+			//Delete if previously sent exists
+			if (channelQueryAndResponseDict.ContainsKey(chatId))
+			{
+				var cached = channelQueryAndResponseDict[chatId];
+
+				//Delete previous query and response from chat
+				try
+				{
+					_ = client.DeleteMessageAsync(chatId, cached.QueryMessageID);
+					_ = client.DeleteMessageAsync(chatId, cached.ResponseMessageID);
+				}
+				catch
+				{
+				}
+			}
+
+			//Insert the new entry
+			channelQueryAndResponseDict[chatId] = new QueryAndResponseMessageCache { QueryMessageID = queryMesssageId, ResponseMessageID = responseMessageId };
+		}
+
 		private static async Task ProcessMessage(MessageEventArgs e)
 		{
 			ReplyKeyboardMarkup rkm = GenerateHomeKeyboard();
 
 			if (e.Message.Text == "/price")
 			{
+				var binanceResults = await OpenApiNkn.GetBinanceUSDAndBTCRate();
+
 				StringBuilder sb = new StringBuilder();
 				sb.AppendLine("*NKN Price*");
-				sb.AppendLine($"`{await OpenApiNkn.GetBinanceNKNUSDTRate()} $`");
-				sb.AppendLine($"`{await OpenApiNkn.GetBinanceNKNBTCRate()} Ƀ`");
-				decimal rate = await OpenApiNkn.GetNKNRate();
-				await client.SendTextMessageAsync(e.Message.Chat.Id, $"{sb.ToString().Replace(".", "\\.")}", ParseMode.MarkdownV2);
+				sb.AppendLine($"`{binanceResults.Item1} $`");
+				sb.AppendLine($"`{binanceResults.Item2} Ƀ`");
+				var replyMsg = await client.SendTextMessageAsync(e.Message.Chat.Id, $"{sb.ToString().Replace(".", "\\.")}", ParseMode.MarkdownV2);
+
+				await pushQueryAndResponseCache(e.Message.Chat.Id, e.Message.MessageId, replyMsg.MessageId);
 			}
 			else if (e.Message.Text.StartsWith("/price"))
 			{
@@ -142,22 +169,83 @@ If you have any further questions you can reach me here @MutsiMutsi";
 				{
 					if (decimal.TryParse(splitCmd[1], out decimal amount))
 					{
-						decimal usdt = decimal.Parse(await OpenApiNkn.GetBinanceNKNUSDTRate()) * amount;
-						decimal btc = decimal.Parse(await OpenApiNkn.GetBinanceNKNBTCRate()) * amount;
+						var binanceResults = await OpenApiNkn.GetBinanceUSDAndBTCRate();
+						decimal usdt = decimal.Parse(binanceResults.Item1) * amount;
+						decimal btc = decimal.Parse(binanceResults.Item2) * amount;
 
 						StringBuilder sb = new StringBuilder();
 						sb.AppendLine($"{amount} NKN");
 						sb.AppendLine($"`{usdt.ToString("G29")} $`");
 						sb.AppendLine($"`{btc.ToString("G29")} Ƀ`");
-						decimal rate = await OpenApiNkn.GetNKNRate();
-						await client.SendTextMessageAsync(e.Message.Chat.Id, $"{sb.ToString().Replace(".", "\\.")}", ParseMode.MarkdownV2);
+						var replyMsg = await client.SendTextMessageAsync(e.Message.Chat.Id, $"{sb.ToString().Replace(".", "\\.")}", ParseMode.MarkdownV2);
+
+						await pushQueryAndResponseCache(e.Message.Chat.Id, e.Message.MessageId, replyMsg.MessageId);
 					}
 				}
 			}
-			if (e.Message.Text == "/moon")
+			if (e.Message.Text == "/node" || e.Message.Text == "/nodes")
 			{
-				decimal rate = await OpenApiNkn.GetNKNRate();
-				await client.SendTextMessageAsync(e.Message.Chat.Id, "soon", ParseMode.MarkdownV2);
+				var networkTask = OpenApiNkn.GetNetworkStatsNKNOrg();
+				var nknPriceTask = OpenApiNkn.GetBinanceNKNUSDTRate();
+				var blockInfoTask = OpenApiNkn.GetBlockchainStats();
+
+				var tasksResult = Task.WhenAll(networkTask, nknPriceTask, blockInfoTask);
+
+				await tasksResult;
+
+				if (tasksResult.Status == TaskStatus.RanToCompletion)
+				{
+					var network = networkTask.Result;
+					var nknPrice = nknPriceTask.Result;
+					var blockHeight = blockInfoTask.Result.BlockCount;
+
+					StringBuilder sb = new StringBuilder();
+					sb.AppendLine($"💻 {string.Format("{0:n0}", (decimal)network.Payload.TotalCount)} nodes");
+					sb.AppendLine($"🌍 {network.Payload.Summary.Count.ToString("G29")} countries");
+
+					sb.AppendLine();
+
+					DateTime genesis = DateTime.Parse("2019-06-29 13:26:30");
+					var span = DateTime.UtcNow - genesis;
+
+					int numNodes = network.Payload.TotalCount;
+					double miningReward = 11.09851671;
+
+					double daysInMonth = 30.4368499;
+					int secondsInDay = 86400;
+
+					double secondsPerBlock = span.TotalSeconds / blockHeight;
+					double blocksPerDay = secondsInDay / secondsPerBlock;
+					double blocksPerMonth = blocksPerDay * daysInMonth;
+
+					double blockPerNodePerDay = blocksPerDay / numNodes;
+					double blockPerNodePerMonth = blocksPerMonth / numNodes;
+
+					var avgTillBlockPerNode = 1.0 / blockPerNodePerDay;
+					double monthlyRewardNKN = blockPerNodePerMonth * miningReward;
+					double monthlyRewardUSD = monthlyRewardNKN * double.Parse(nknPrice);
+
+					sb.AppendLine($"⛓️ {string.Format("{0:n0}", (decimal)blockHeight)} blockheight");
+					sb.AppendLine($"⏳ {(secondsPerBlock).ToString("0.00")}s blocktime");
+
+					sb.AppendLine();
+
+					sb.AppendLine($"⛏ {avgTillBlockPerNode.ToString("0.00")} avg days to mine a block");
+					sb.AppendLine($"💰 ${monthlyRewardUSD.ToString("0.00")} avg reward per month");
+
+
+					var replyMsg = await client.SendTextMessageAsync(e.Message.Chat.Id, sb.ToString(), ParseMode.Default);
+					await pushQueryAndResponseCache(e.Message.Chat.Id, e.Message.MessageId, replyMsg.MessageId);
+				}
+
+				/*var network = await OpenApiNkn.GetNetworkStats();
+				StringBuilder sb = new StringBuilder();
+				sb.AppendLine($"💻 {string.Format("{0:n0}", network.TotalNodes)} nodes");
+				sb.AppendLine($"🌍 {network.TotalCountries.ToString("G29")} countries");
+				sb.AppendLine($"🏢 {network.TotalProviders.ToString("G29")} providers");
+
+				var replyMsg = await client.SendTextMessageAsync(e.Message.Chat.Id, sb.ToString(), ParseMode.MarkdownV2);
+				await pushQueryAndResponseCache(e.Message.Chat.Id, e.Message.MessageId, replyMsg.MessageId);*/
 			}
 
 			if (e.Message.ReplyToMessage != null)
